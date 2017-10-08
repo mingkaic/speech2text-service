@@ -1,0 +1,20 @@
+{
+  "name": "rocnnet-s2t",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "gridfs-stream": "^1.1.1",
+    "mongoose": "^4.11.6",
+    "node-health-service": "^1.0.7",
+    "schema-object": "^4.0.11"
+  }
+}

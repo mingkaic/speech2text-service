@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  test_uniaudio:
+    image: mkaichen/s2t:latest
+    build: .
+    environment:
+      - DB_HOST=central_mongodb
+    command: [ "npm", "test" ]
+    depends_on: 
+      - central_mongodb
+
+  central_mongodb:
+    image: mongo:latest
+    volumes: 
+      - /data/database
+    restart: always
