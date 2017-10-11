@@ -19,7 +19,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 const routes = require('./routes');
-routes.get('/health', reporter.lastError);
+routes.get('/lasterror', reporter.lastError);
+routes.get('/reachable', (req, res) => res.json("success")); // always reachable
 app.use(routes);
 
 // Listen on provided port, on all network interfaces.

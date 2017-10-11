@@ -1,0 +1,9 @@
+{
+  "name": "addon",
+  "version": "0.0.1",
+  "gypfile": true,
+  "dependencies": {
+    "streaming-worker": "*",
+    "streaming-worker-sdk": "*"
+  }
+}
