@@ -5,8 +5,18 @@ services:
     image: mkaichen/s2t:latest
     environment:
       - DB_HOST=centralmongodb
+      - 'UAS_URL=http://uniaudio:8080'
     ports:
       - '8008:8008'
+    depends_on: 
+      - centralmongodb
+
+  uniaudio:
+    image: mkaichen/uni_audio:latest
+    environment:
+      - AUDIOSEARCH_APP_ID=$AUDIOSEARCH_APP_ID
+      - AUDIOSEARCH_SECRET=$AUDIOSEARCH_SECRET
+      - DB_HOST=centralmongodb
     depends_on: 
       - centralmongodb
 
