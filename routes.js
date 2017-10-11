@@ -12,14 +12,14 @@ router.post('/subtitles/:id', (req, res) => {
 
 	wordDb.getWords(audId)
 	.then((words) => {
-		var reader = new Readable();
 		if (words.length === 0) {
 			// look at uas
 			uas.get_transcript(audId)
 			.then((transcript) => {
 				if (transcript) {
 					// save transcript to wordDb;
-
+					transcript.forEach((word) => wordDb.setWord(word));
+					
 					reader.push(transcript);
 					reader.push(null);
 				}
@@ -27,14 +27,16 @@ router.post('/subtitles/:id', (req, res) => {
 					// start speech processing
 					db.getAudio(audId)
 					.then((audio) => {
-						var emitter = s2t(audio); // share this emitter to partial readers
+						transcript = [];
+						var emitter = s2t(audId, audio); // share this emitter to partial readers
 						emitter.on('data', (word) => {
 							// save to wordDb;
-					
-							reader.push(word);
+							// wordDb.setWord(word); // uncomment once s2t is implemented
+
+							transcript = transcript.concat(word);
 						});
 						emitter.on('end', () => {
-							reader.push(null);
+							res.json(transcript);
 						});
 					});
 				}
@@ -45,10 +47,8 @@ router.post('/subtitles/:id', (req, res) => {
 			// transcript is complete, or in progress
 
 			// for now consider complete only
-			reader.push(words);
-			reader.push(null);
+			res.json(words);
 		}
-		reader.pipe(res);
 	})
 	.catch((err) => {
 		res.status(500).send(err);
@@ -58,7 +58,7 @@ router.post('/subtitles/:id', (req, res) => {
 router.get('/synthesize', (req, res) => {
 	var synthid = "mockSynthid";
 	var script = req.body.script; 
-	// format [{AudioModel.id, timestamp.begin, timestamp.end}]
+	// format [{id: string, begin: number, end: number}]
 
 	res.json(synthid);
 });

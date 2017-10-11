@@ -1,14 +1,12 @@
 {
-  "name": "rocnnet-s2t",
+  "name": "speech2text-service",
   "version": "1.0.0",
-  "description": "",
+  "description": "extract and store transcripts of known audio assets",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha tests --recursive",
     "start": "node server.js"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
@@ -16,5 +14,20 @@
     "mongoose": "^4.11.6",
     "node-health-service": "^1.0.7",
     "schema-object": "^4.0.11"
-  }
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "fake-stream": "^0.1.1",
+    "mocha": "^3.5.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mingkaic/speech2text-service.git"
+  },
+  "author": "Ming Kai Chen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mingkaic/speech2text-service/issues"
+  },
+  "homepage": "https://github.com/mingkaic/speech2text-service#readme"
 }

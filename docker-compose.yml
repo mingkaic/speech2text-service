@@ -1,16 +1,21 @@
 version: '2'
 
 services:
-  test_uniaudio:
+  s2t:
+    image: mkaichen/s2t:latest
+    environment:
+      - DB_HOST=centralmongodb
+    ports:
+      - '8008:8008'
+    depends_on: 
+      - centralmongodb
+
+  test_s2t:
     image: mkaichen/s2t:latest
     build: .
-    environment:
-      - DB_HOST=central_mongodb
     command: [ "npm", "test" ]
-    depends_on: 
-      - central_mongodb
 
-  central_mongodb:
+  centralmongodb:
     image: mongo:latest
     volumes: 
       - /data/database

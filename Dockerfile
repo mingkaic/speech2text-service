@@ -9,6 +9,8 @@ WORKDIR $S2T_DIR
 # move everything
 COPY . $S2T_DIR
 
+EXPOSE 8008
+
 # everything
 RUN bash setup.sh
 
