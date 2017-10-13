@@ -5,7 +5,7 @@ const http = require('http');
 
 const reporter = require('node-health-service').Reporter();
 
-const default_port = '8008';
+const default_port = '8080';
 const default_host = '0.0.0.0';
 
 const app = express();
