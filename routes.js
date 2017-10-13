@@ -19,9 +19,14 @@ router.post('/subtitles/:id', (req, res) => {
 				if (transcript) {
 					// save transcript to wordDb;
 					transcript.forEach((word) => wordDb.setWord(word));
-					
-					reader.push(transcript);
-					reader.push(null);
+					// todo: make dry... this is reused 3 times
+					res.json(transcript.map((word) => {
+						return {
+							"word": word.word,
+							"start": word.start,
+							"end": word.end
+						};
+					}));
 				}
 				else {
 					// start speech processing
@@ -36,7 +41,13 @@ router.post('/subtitles/:id', (req, res) => {
 							transcript = transcript.concat(word);
 						});
 						emitter.on('end', () => {
-							res.json(transcript);
+							res.json(transcript.map((word) => {
+								return {
+									"word": word.word,
+									"start": word.start,
+									"end": word.end
+								};
+							}));
 						});
 					});
 				}
@@ -47,7 +58,13 @@ router.post('/subtitles/:id', (req, res) => {
 			// transcript is complete, or in progress
 
 			// for now consider complete only
-			res.json(words);
+			res.json(words.map((word) => {
+				return {
+					"word": word.word,
+					"start": word.start,
+					"end": word.end
+				};
+			}));
 		}
 	})
 	.catch((err) => {

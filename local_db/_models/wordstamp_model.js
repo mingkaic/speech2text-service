@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const WordStampSchema = new mongoose.Schema({
-    "id": { type: String, unique: true },
+    "id": String,
     "word": String,
     "start": { type: Number, required: true },
     "end": { type: Number, required: true }
