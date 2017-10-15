@@ -1,83 +1,87 @@
 const express = require('express');
 const router = express.Router();
+const uuidv1 = require('uuid/v1');
 
 const db = require('./database');
-const wordDb = require('./local_db/subtitleDb');
+const localDb = require('./local_db/subtitleDb');
+const AudioSchema = require('./database/_schemas/audio_schema');
 
+const aud = require('./services/aud');
 const s2t = require('./services/s2t');
-const uas = require('./services/uas');
 
 router.post('/subtitles/:id', (req, res) => {
 	var audId = req.params.id;
 
-	wordDb.getWords(audId)
-	.then((words) => {
-		if (words.length === 0) {
-			// look at uas
-			uas.get_transcript(audId)
-			.then((transcript) => {
-				if (transcript) {
-					// save transcript to wordDb;
-					transcript.forEach((word) => wordDb.setWord(word));
-					// todo: make dry... this is reused 3 times
-					res.json(transcript.map((word) => {
-						return {
-							"word": word.word,
-							"start": word.start,
-							"end": word.end
-						};
-					}));
-				}
-				else {
-					// start speech processing
-					db.getAudio(audId)
-					.then((audio) => {
-						transcript = [];
-						var emitter = s2t(audId, audio); // share this emitter to partial readers
-						emitter.on('data', (word) => {
-							// save to wordDb;
-							// wordDb.setWord(word); // uncomment once s2t is implemented
+	localDb.getWords(audId)
+	.then((existing_transcript) => {
+		if (existing_transcript.length === 0) {
+			// start speech processing
+			return db.getAudio(audId)
+			.then((audio) => {
+				var transcript = [];
+				var emitter = s2t(audId, audio); // share this emitter to partial readers
+				emitter.on('data', (word) => {
+					transcript = transcript.concat(word);
+				});
+				return new Promise((resolve, reject) => {
+					emitter.on('end', () => {
+						// save to localDb;
+						// transcript.forEach((word) => localDb.setWord(word));
+						// todo: uncomment (AFTER S2T IMPLEMENTATION) ^
 
-							transcript = transcript.concat(word);
-						});
-						emitter.on('end', () => {
-							res.json(transcript.map((word) => {
-								return {
-									"word": word.word,
-									"start": word.start,
-									"end": word.end
-								};
-							}));
-						});
+						resolve(transcript);
 					});
-				}
+
+					emitter.on('error', (err) => {
+						reject(err);
+					});
+				});
 			});
 		}
-		else {
-			// THERE CAN BE TWO STATES HERE: 
-			// transcript is complete, or in progress
-
-			// for now consider complete only
-			res.json(words.map((word) => {
-				return {
-					"word": word.word,
-					"start": word.start,
-					"end": word.end
-				};
-			}));
-		}
+		return Promise.resolve(existing_transcript);
+	})
+	.then((transcript) => {
+		res.json(transcript.map((word) => {
+			return {
+				"id": word.id,
+				"word": word.word,
+				"start": word.start,
+				"end": word.end
+			};
+		}));
 	})
 	.catch((err) => {
 		res.status(500).send(err);
 	});
 });
 
-router.get('/synthesize', (req, res) => {
-	var synthid = "mockSynthid";
-	var script = req.body.script; 
-	// format [{id: string, begin: number, end: number}]
+router.post('/synthesize', (req, res) => {
+	var id = uuidv1();
+	var title = id;
+	// format [{id: string, word: string, start: number, end: number}]
+	var script = req.body.script;
+	if (0 === script.length) {
+		return res.status(400).send("attempting to synthesize empty script");
+	}
+	aud.synthesize(script)
+	.then((audio) => {
+		// save audio to db
+		return db.audioSave([new AudioSchema({
+			"id": id,
+			"source": "synthesized",
+			"title": title,
+			"audio": audio
+		})]);
+	})
+	.then(() => {
+		// save script to localDb
+		localDb.setScript(id, script);
 
-	res.json(synthid);
+		res.json({"id": id, "title": title});
+	})
+	.catch((err) => {
+		res.status(500).send(err);
+	});
 });
 
 module.exports = router;

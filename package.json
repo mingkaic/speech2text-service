@@ -10,12 +10,14 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
+    "fluent-ffmpeg": "^2.1.2",
     "gridfs-stream": "^1.1.1",
     "mongoose": "^4.11.6",
     "node-health-service": "^1.0.7",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
-    "schema-object": "^4.0.11"
+    "schema-object": "^4.0.11",
+    "stream-buffer": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
