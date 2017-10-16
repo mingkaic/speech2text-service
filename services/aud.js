@@ -89,7 +89,12 @@ function glue(audios) {
 }
 
 exports.synthesize = (script) => {
-	// map id to [{ start, end, index }]
+    // map id to [{ start, end, index }]
+    script = script.filter((word) => word.start >= 0);
+    if (script.length < 1) {
+        return Promise.resolve();
+    }
+
 	var idseparated = {};
 	script.forEach((word, index) => {
 		if (!idseparated.hasOwnProperty(word.id)) {
