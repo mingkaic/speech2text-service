@@ -37,15 +37,18 @@ exports.getWords = (id) => {
 				uas.get_transcript(id)
 				.then((transcript) => {
 					// save transcript
+					console.log('found transcript from uas for id', id);
 					transcript.forEach((word) => exports.setWord(word));
 					resolve(transcript);
 				})
 				.catch((err) => {
+					console.log('no transcript found at uas for id', id);
 					// if transcript is not found (not supported by youtube)
 					resolve([]); // resolve anyways
 				});
 			});
 		}
+		console.log('found existing transcript for id', id);
 		return transcript.sort((a, b) => a.start - b.start);
 	});
 };

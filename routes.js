@@ -11,6 +11,7 @@ const s2t = require('./services/s2t');
 
 router.post('/subtitles/:id', (req, res) => {
 	var audId = req.params.id;
+	console.log('evaluating subtitles for', audId);
 
 	localDb.getWords(audId)
 	.then((existing_transcript) => {
