@@ -1,24 +1,24 @@
 const events = require('events');
-const WordSchema = require('../local_db/_schemas/wordstamp_schema');
+const WordstampSchema = require('shared_mongodb_api').WordstampSchema;
 
 module.exports = (id, audiostream) => {
-    var eventEmitter = new events.EventEmitter();
-    
-    setTimeout(() => {
-        eventEmitter.emit('data', new WordSchema({
-            "id": id,
-            "word": "dummy_word",
-            "start": -1,
-            "end": -2,
-        }));
-        eventEmitter.emit('data', new WordSchema({
-            "id": id,
-            "word": "DONT_USE",
-            "start": -1,
-            "end": -2,
-        }));
-        eventEmitter.emit('end');
-    }, 1000);
+	var eventEmitter = new events.EventEmitter();
+	
+	setTimeout(() => {
+		eventEmitter.emit('data', new WordstampSchema({
+			"id": id,
+			"word": "dummy_word",
+			"start": -1,
+			"end": -2,
+		}));
+		eventEmitter.emit('data', new WordstampSchema({
+			"id": id,
+			"word": "DONT_USE",
+			"start": -1,
+			"end": -2,
+		}));
+		eventEmitter.emit('end');
+	}, 1000);
 
-    return eventEmitter;
+	return eventEmitter;
 };

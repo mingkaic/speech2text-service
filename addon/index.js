@@ -13,5 +13,5 @@ const input = addon.to.stream("audio", termination);
 readstr.pipe(input);
 
 addon.from.on('concat', (value) => {
-    console.log("String of stream:", value);
+	console.log("String of stream:", value);
 });

@@ -1,88 +1,103 @@
-const express = require('express');
-const router = express.Router();
 const uuidv1 = require('uuid/v1');
+const db = require('shared_mongodb_api');
+const grpc = require('shared_grpc');
 
-const db = require('./database');
-const localDb = require('./local_db/subtitleDb');
-const AudioSchema = require('./database/_schemas/audio_schema');
+const AudioSchema = db.AudioSchema;
+const WordstampSchema = db.WordstampSchema;
 
 const aud = require('./services/aud');
 const s2t = require('./services/s2t');
 
-router.post('/subtitles/:id', (req, res) => {
-	var audId = req.params.id;
+exports.processCaptions = (call) => {
+	var audId = call.request.id;
 	console.log('evaluating subtitles for', audId);
 
-	localDb.getWords(audId)
+	db.captions.getWords(audId)
 	.then((existing_transcript) => {
 		if (existing_transcript.length === 0) {
 			// start speech processing
-			return db.getAudio(audId)
+			return db.audio.get(audId)
 			.then((audio) => {
 				var transcript = [];
 				var emitter = s2t(audId, audio); // share this emitter to partial readers
 				emitter.on('data', (word) => {
-					transcript = transcript.concat(word);
+					db.captions.saveWord(new WordstampSchema({
+						"id": audId,
+						"word": word.word,
+						"start": word.start,
+						"end": word.end
+					}));
+					call.write(word);
 				});
-				return new Promise((resolve, reject) => {
-					emitter.on('end', () => {
-						// save to localDb;
-						// transcript.forEach((word) => localDb.setWord(word));
-						// todo: uncomment (AFTER S2T IMPLEMENTATION) ^
 
-						resolve(transcript);
-					});
+				emitter.on('end', () => {
+					call.end();
+				});
 
-					emitter.on('error', (err) => {
-						reject(err);
-					});
+				emitter.on('error', (err) => {
+					throw err;
 				});
 			});
 		}
-		return Promise.resolve(existing_transcript);
-	})
-	.then((transcript) => {
-		res.json(transcript.map((word) => {
-			return {
-				"id": word.id,
-				"word": word.word,
-				"start": word.start,
-				"end": word.end
-			};
-		}));
+		else {
+			existing_transcript.forEach((captionSeg) => {
+				call.write({
+					"word": captionSeg.word,
+					"start": captionSeg.start,
+					"end": captionSeg.end
+				});
+			});
+			call.end();
+		}
 	})
 	.catch((err) => {
-		res.status(500).send(err);
+		grpc.logError(500, err);
+		call.end();
 	});
-});
+};
 
-router.post('/synthesize', (req, res) => {
+exports.processAudioSynthesis = (call, callback) => {
 	var id = uuidv1();
 	var title = id;
-	// format [{id: string, word: string, start: number, end: number}]
-	var script = req.body.script;
-	if (0 === script.length) {
-		return res.status(400).send("attempting to synthesize empty script");
-	}
-	aud.synthesize(script)
-	.then((audio) => {
-		// save audio to db
-		return db.audioSave([new AudioSchema({
-			"id": id,
-			"source": "synthesized",
-			"title": title,
-			"audio": audio
-		})]);
-	})
-	.then(() => {
-		// save script to localDb
-		localDb.setScript(id, script);
+	var script = [];
 
-		res.json({"id": id, "title": title});
-	})
-	.catch((err) => {
-		res.status(500).send(err);
+	// format each mixed caption to {id: string, word: string, start: number, end: number}
+	call.on('data', (mixedCaptionReq) => {
+		script.push(new WordstampSchema({
+			"id": mixedCaptionReq.id,
+			"word": mixedCaptionReq.content.word,
+			"start": mixedCaptionReq.content.start,
+			"end": mixedCaptionReq.content.end
+		}));
 	});
-});
+	call.on('end', () => {
+		aud.synthesize(script)
+		.then((audio) => {
+			// save audio to db
+			return db.audio.save([new AudioSchema({
+				"id": id,
+				"source": "SYNTHESIZED",
+				"title": title,
+				"audio": audio
+			})]);
+		})
+		.then(() => {
+			// save captions
+			db.captions.saveCaptions(id, script);
 
-module.exports = router;
+			callback(null, {
+				"id": id,
+				"title": title,
+				"source": 'SYNTHESIZED'
+			});
+		})
+		.catch((err) => {
+			grpc.logError(500, err);
+			callback(null, {
+				"id": '',
+				"title": '',
+				"source": 'UNKNOWN'
+			});
+		});
+	});
+};
