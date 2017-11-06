@@ -7,13 +7,19 @@ module.exports = (id, audiostream) => {
 	setTimeout(() => {
 		eventEmitter.emit('data', new WordstampSchema({
 			"id": id,
-			"word": "dummy_word",
+			"word": "apple",
 			"start": -1,
 			"end": -2,
 		}));
 		eventEmitter.emit('data', new WordstampSchema({
 			"id": id,
-			"word": "DONT_USE",
+			"word": "apple",
+			"start": -1,
+			"end": -2,
+		}));
+		eventEmitter.emit('data', new WordstampSchema({
+			"id": id,
+			"word": "apple",
 			"start": -1,
 			"end": -2,
 		}));

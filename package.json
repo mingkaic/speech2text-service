@@ -5,9 +5,11 @@
   "main": "server.js",
   "directories": {
     "addon": "addon",
-    "services": "services"
+    "services": "services",
+    "tests": "tests"
   },
   "scripts": {
+    "test": "mocha tests --recursive",
     "start": "node server.js"
   },
   "dependencies": {
@@ -21,7 +23,9 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha": "^3.5.3"
+    "dotenv": "^4.0.0",
+    "mocha": "^3.5.3",
+    "mongo-clean": "^1.2.2"
   },
   "repository": {
     "type": "git",

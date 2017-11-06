@@ -9,12 +9,14 @@ services:
       - UAS_PORT=8080
     ports:
       - '8080:8080'
-    depends_on: 
+    depends_on:
       - centralmongodb
 
-  test_s2t:
+  s2t-test:
     image: mkaichen/s2t:latest
     build: .
+    environment:
+      - DB_HOST=centralmongodb
     command: [ "npm", "test" ]
 
   centralmongodb:

@@ -27,7 +27,11 @@ exports.processCaptions = (call) => {
 						"start": word.start,
 						"end": word.end
 					}));
-					call.write(word);
+					call.write({
+						"word": word.word,
+						"start": word.start,
+						"end": word.end
+					});
 				});
 
 				emitter.on('end', () => {

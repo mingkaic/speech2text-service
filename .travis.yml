@@ -4,6 +4,7 @@ script:
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - docker-compose build
   - docker images
+  - docker-compose up s2t-test
 
 after_success:
   - docker-compose push
