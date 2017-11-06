@@ -18,6 +18,8 @@ services:
     environment:
       - DB_HOST=centralmongodb
     command: [ "npm", "test" ]
+    depends_on:
+      - centralmongodb
 
   centralmongodb:
     image: mongo:latest
